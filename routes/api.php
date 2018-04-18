@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Http\Request;
 use App\User;
 use App\partidas;
@@ -10,20 +9,26 @@ Route::post('/login', function(Request $request){
 	
     $user = \Auth::User();  
 	$credentials = $request->only('email', 'password');
+    
     if (Auth::attempt($credentials)) {  
     	$rand_part = str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.uniqid());
-		$ok = User::where('email', $user['email'])->update(['token' => $rand_part]);
+		$ok = User::where('email', $credentials['email'])->update(['token' => $rand_part]);
 
-		return response()->json(['idJugador1' => $user['id'], 'token' => $user['token'],'mensaje'=>1]);
+		return response()->json(['email' => $credentials['email'],'token' => $rand_part,'mensaje'=>1]);
 	}else {
-		return response()->json(['email' => $user['email'],'mensaje'=> 'Usuario No identificado!']);
+		return response()->json(['email' => $credentials['email'],'mensaje'=> 'Usuario No identificado!']);
 	}
 });
 
 Route::POST('/logout', function(Request $request){	
-	$user = \Auth::User();
-	$ok = User::where('id', $user['id'])->update(['token' => '0']);
-	return response()->json(['mensaje' => 'Logout!!.']);	
+
+    $credentials = $request->only('email');
+    
+    $user = \Auth::User();
+	$ok = User::where('email', $credentials['email'])->update(['token' => '0']);
+	
+    return response()->json([ 'email' => $credentials['email'],
+        'mensaje' => 'Logout!!.']);	
 });
 
 
