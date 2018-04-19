@@ -1,5 +1,7 @@
 <?php
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Foundation\Auth\RegistersUsers;
 use App\User;
 use App\partidas;
 use App\fichas;
@@ -28,7 +30,7 @@ Route::POST('/logout', function(Request $request){
 	$ok = User::where('email', $credentials['email'])->update(['token' => '0']);
 	
     return response()->json([ 'email' => $credentials['email'],
-        'mensaje' => 'Logout!!.']);	
+        'mensaje' => 'Logout!!.', 'ok' => 1]);	
 });
 
 
@@ -44,6 +46,26 @@ Route::POST('/eligeJugador/', function(Request $request) {
         ['jugadores' => $jugadores]);
 });
 
+/*
+* Registro de usuario. 
+*/     
+Route::POST('/registro', function(Request $request) {
+
+    $datos = $request->only('nombre', 'email', 'password');  
+    $pass = bcrypt($datos['password']);  
+    try {
+        $user = new User;
+        $user['name'] = $datos['nombre']; 
+        $user['email'] = $datos['email'];             
+        $user['password'] = $pass;
+        $user->save();
+        $msj = "Usuario Registrado Correctamente!! ";
+    } catch (Exception $e) {
+        $msj = "No se ha podido registar!!";
+        $mensaje = $e->getMessage();
+    }
+    return response()->json(['mensaje' => $msj]);
+});
 /*
 * Inicia Partida una vez haya elegido un jugador con quien jugar
 */     
