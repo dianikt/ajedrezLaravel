@@ -14,7 +14,7 @@ Route::post('/login', function(Request $request){
     
     if (Auth::attempt($credentials)) {  
     	$rand_part = str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.uniqid());
-		$ok = User::where('email', $credentials['email'])->update(['token' => $rand_part]);
+		$ok = User::where('email', $credentials['email'])->update(['token' => $rand_part, 'status' => '1']);
         $id = Auth::user()->id;    
 
 		return response()->json(['email' => $credentials['email'], 'idJugador1'=> $id,
@@ -26,11 +26,10 @@ Route::post('/login', function(Request $request){
 
 Route::POST('/logout', function(Request $request){	
 
-
     $credentials = $request->only('email');
     
     $user = \Auth::User();
-	$ok = User::where('email', $credentials['email'])->update(['token' => '0']);
+	$ok = User::where('email', $credentials['email'])->update(['token' => '0', 'status' => '0']);
 	
     return response()->json([ 'email' => $credentials['email'],
         'mensaje' => 'Logout!!.', 'ok' => 1]);	
@@ -40,10 +39,10 @@ Route::POST('/logout', function(Request $request){
 /*
 *Devuelve la lista de jugadores menos el que acaba de iniciar sesion
 */
-Route::POST('/eligeJugador/', function(Request $request) {
+Route::POST('/eligeJugador', function(Request $request) {
 
 	$jugador = $request->only('idJugador1');
-    $jugadores = User::where('token','0')->get();   
+    $jugadores = User::where('status','1')->where('id','<>',$jugador['idJugador1'])->get();   
     
     return response()->json(
         ['jugadores' => $jugadores]);
@@ -134,8 +133,7 @@ function posicionInicialFichas($idPartida, $jugadorIni, $jugadorEle ){
 
     $fichas = [];
     $fichas[1]  = $ficha1;   
-    $fichas[2]  = $ficha2;
-   
+    $fichas[2]  = $ficha2;   
     
     return $fichas;
      

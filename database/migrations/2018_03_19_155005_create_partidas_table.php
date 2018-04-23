@@ -17,7 +17,7 @@ class CreatePartidasTable extends Migration
             $table->increments('idPartida')->unique();
             $table->integer("jugador1")->unsigned();
             $table->integer("jugador2")->unsigned();
-            $table->integer("estados")->default(0);            
+            $table->integer("estados")->default(0);               
             $table->timestamps();
             $table->foreign('jugador1')->references('id')->on('users');  // id usuario
             $table->foreign('jugador2')->references('id')->on('users');  

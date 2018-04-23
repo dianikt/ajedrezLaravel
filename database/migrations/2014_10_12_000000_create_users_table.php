@@ -21,6 +21,7 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->string('token')->default(0);
+            $table->integer("status")->default(0);         
         });
     }
 
