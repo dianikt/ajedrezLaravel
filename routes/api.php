@@ -48,6 +48,22 @@ Route::POST('/eligeJugador', function(Request $request) {
         ['jugadores' => $jugadores]);
 });
 
+
+/*
+*Devuelve la partida que tiene el jugador 
+*/
+Route::POST('/comprobarPartidas', function(Request $request) {
+
+    $jugador = $request->only('idJugador1');
+    $partida = partidas::where('estados', '>', '0')->where('jugador2', $jugador['idJugador1'])->get();   
+    
+    $fichas = fichas::where('idPartida', $partida[0]['idPartida'])->get();
+    return response()->json(
+        ['partidas' => $partida[0], 
+          'fichas' => $fichas,
+        'jugador' => $jugador
+        ]);
+});
 /*
 * Registro de usuario. 
 */     
