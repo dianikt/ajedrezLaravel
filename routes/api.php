@@ -34,10 +34,46 @@ Route::POST('/logout', function(Request $request){
     return response()->json([ 'email' => $credentials['email'],
         'mensaje' => 'Logout!!.', 'ok' => 1]);	
 });
+/*
+*Devuelve la lista de jugadores menos el que acaba de iniciar sesion
+*/
+Route::POST('/finalizar', function(Request $request) {
+
+    $jugador = $request->only('idPartida', "idJugador1", "idJugador2");
+    
+    $jugador1 = User::where('id', $jugador['idJugador1'])->update(['status' => 0]);
+    $jugador2 = User::where('id', $jugador['idJugador2'])->update(['status' => 0]);  
+
+    $partida = partidas::where('idPartida', $jugador['idPartida'])->update(['estados' => -1]);   
+ 
+    return response()->json(
+        ['jugadores' => $jugador]);
+});
+
 
 
 /*
 *Devuelve la lista de jugadores menos el que acaba de iniciar sesion
+*/
+Route::POST('/recargaTablero', function(Request $request) {
+
+    $fichas = $request->only('idFicha1', "idFicha2", 'pos1', 'pos2');
+    
+    $ficha1 = fichas::where('idFicha',$fichas['idFicha1'])->update(['pos' => $fichas['pos1']]);  
+    $ficha2 = fichas::where('idFicha',$fichas['idFicha2'])->update(['pos' => $fichas['pos2']]);  
+
+    $ficha1 = fichas::where('idFicha',$fichas['idFicha1'])->get(); 
+    $ficha2 = fichas::where('idFicha',$fichas['idFicha2'])->get();   
+    
+    return response()->json(
+        ['ficha1' => $ficha1, 
+         'ficha2' => $ficha2
+    ]);
+});
+
+/*
+*Devuelve la lista de jugadores menos el que acaba de iniciar sesion
+* status jugadores que han iniciado sesion
 */
 Route::POST('/eligeJugador', function(Request $request) {
 
@@ -55,13 +91,13 @@ Route::POST('/eligeJugador', function(Request $request) {
 Route::POST('/comprobarPartidas', function(Request $request) {
 
     $jugador = $request->only('idJugador1');
-    $partida = partidas::where('estados', '>', '0')->where('jugador2', $jugador['idJugador1'])->get();   
-    
-    $fichas = fichas::where('idPartida', $partida[0]['idPartida'])->get();
+
+    $partida = partidas::where('jugador1', $jugador['idJugador1'])->orwhere('jugador2', $jugador['idJugador1'])->where('estados', '>',0)->get(); 
+   
+       
     return response()->json(
-        ['partidas' => $partida[0], 
-          'fichas' => $fichas,
-        'jugador' => $jugador
+        ['partidas' => $partida     
+         
         ]);
 });
 /*
@@ -160,23 +196,13 @@ function posicionInicialFichas($idPartida, $jugadorIni, $jugadorEle ){
 */     
 Route::POST('/movimiento', function(Request $request) {
 
-	$partida = $request->only('idFicha1', 'idFicha2','estado', 'idPartida', 'posNueva');
-	
-		if(($partida['estado'] == 1) || ($partida['estado']%2 != 0 )){ // turno del jugador 1 !!! 
-    		$ok = partidas::where('idPartida', $partida['idPartida'])->update(['estados' => $partida['estado']]);
-    		$ok1 = fichas::where('idFicha', $partida['idFicha1'] )->update(['pos' => $partida['posNueva']]);
-    		$estado = "movimiento ok";
+	$partida = $request->only('idFicha1','estado', 'idPartida', 'posNueva');	
+		
+		$ok = partidas::where('idPartida', $partida['idPartida'])->update(['estados' => $partida['estado']]);
+		$ok1 = fichas::where('idFicha', $partida['idFicha1'] )->update(['pos' => $partida['posNueva']]);
+		$estado = 1;
         	
-		}if($partida['estado']%2 == 0){ // turno del jugador 2 !!! 
-    		$ok =  partidas::where('idPartida', $partida['idPartida'] )->update(['estados' => $partida['estado']]);
-    		$ok1 = fichas::where('idFicha', $partida['idFicha2'] )->update(['pos' => $partida['posNueva']]);
-    		$estado = "movimiento ok";
-		}else{
-		    $estado = "Es el turno del otro jugador";   
-		    $ok = 0;
-		    $ok1 = 0;     	
-		}       
-
+		
     return response()->json(
         [               
           'estado' => $estado,          
